@@ -23,7 +23,7 @@ impl EnemyStats {
 }
 
 impl Showable for EnemyStats{
-    fn show(&self) -> String{
+    fn show_text(&self) -> String{
         format!("Enemy :{}$",self.money)
     }
 }

@@ -51,8 +51,9 @@ impl Manager {
         self.enemy.step();
         self.player.step();
 
-        self.painter.paint(&self.enemy, 30.0, 200.0);
-        self.painter.paint(&self.player, 30.0, 250.0);
+        self.painter.paint_text(&self.enemy, 30.0, 200.0);
+        self.painter.paint_text(&self.player, 30.0, 250.0);
+        self.painter.paint_text(&self.shop, 30.0, 300.0);
     }
 }
 

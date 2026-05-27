@@ -1,4 +1,5 @@
 use super::robot::Unit;
+use super::ui::Showable;
 use serde::Deserialize;
 
 #[derive(Debug,Deserialize)]
@@ -31,6 +32,12 @@ impl Building{
         
         self.progress = 0.0;
         Some(self.product.clone())
+    }
+}
+
+impl Showable for Building{
+    fn show_text(&self) -> String {
+        self.name.clone()
     }
 }
 

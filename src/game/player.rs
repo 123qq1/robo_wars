@@ -42,7 +42,7 @@ impl PlayerStats {
 }
 
 impl Showable for PlayerStats{
-    fn show(&self) -> String {
+    fn show_text(&self) -> String {
         format!("Player: {}$ : ^{}$",self.money,self.income)
     }
 }
