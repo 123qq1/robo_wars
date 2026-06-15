@@ -23,7 +23,7 @@ pub struct Manager{
     shop: Shop,
     player: PlayerStats,
     enemy: EnemyStats,
-    laneManager: LaneManager,
+    lane_manager: LaneManager,
     painter: Painter,
 }
 
@@ -33,7 +33,7 @@ impl Manager {
             shop: Shop::new(), 
             player: PlayerStats::new(400,30,50), 
             enemy : EnemyStats::new(300,30,50),
-            laneManager: LaneManager::new(4), 
+            lane_manager: LaneManager::new(4), 
             painter: Painter {},
         }
     }
@@ -41,13 +41,13 @@ impl Manager {
     pub fn test_buy(&mut self, lane: usize){
         let s_b = self.shop.buy(&mut self.player, 0);
         match s_b{
-            Status::Success(b) => {self.laneManager.add_building(combat::Faction::Player, lane, b);}
+            Status::Success(b) => {self.lane_manager.add_building(combat::Faction::Player, lane, b);}
             Status::Faliure(s) => {println!("{}",s);}
         }
     }
 
     pub fn step(&mut self){
-        self.laneManager.step();
+        self.lane_manager.step();
         self.enemy.step();
         self.player.step();
 

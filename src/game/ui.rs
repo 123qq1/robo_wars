@@ -1,8 +1,6 @@
 use macroquad::prelude::*;
 
-pub trait Showable {
-    fn show_text(&self) -> String;
-}
+
 
 pub struct Painter{
 
