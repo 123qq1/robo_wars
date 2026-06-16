@@ -17,14 +17,14 @@ use shop::Shop;
 use player::PlayerStats;
 use combat::LaneManager;
 use enemy::EnemyStats;
-use ui::Painter;
+use ui::TextPainter;
 
 pub struct Manager{
     shop: Shop,
     player: PlayerStats,
     enemy: EnemyStats,
     lane_manager: LaneManager,
-    painter: Painter,
+    text_painter: TextPainter,
 }
 
 impl Manager {
@@ -34,7 +34,7 @@ impl Manager {
             player: PlayerStats::new(400,30,50), 
             enemy : EnemyStats::new(300,30,50),
             lane_manager: LaneManager::new(4), 
-            painter: Painter {},
+            text_painter: TextPainter::new(),
         }
     }
 
@@ -50,10 +50,11 @@ impl Manager {
         self.lane_manager.step();
         self.enemy.step();
         self.player.step();
+        self.shop.step();
 
-        self.painter.paint_text(&self.enemy, 30.0, 200.0);
-        self.painter.paint_text(&self.player, 30.0, 250.0);
-        self.painter.paint_text(&self.shop, 30.0, 300.0);
+        self.text_painter.paint_text(&self.enemy.text());
+        self.text_painter.paint_text(&self.player.text());
+        self.text_painter.paint_text(&self.shop.text());
     }
 }
 

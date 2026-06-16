@@ -1,10 +1,14 @@
-use super::ui::Showable;
+use macroquad::color::BLACK;
+
+use crate::game::ui::TextPaintOptions;
+
 
 pub struct PlayerStats{
     income_step: i32,
     income_payout: i32,
     income: i32,
-    money: i32
+    money: i32,
+    text_paint_options: TextPaintOptions
 }
 
 impl PlayerStats {
@@ -13,7 +17,8 @@ impl PlayerStats {
             income_payout,
             income_step: 0,
             income,
-            money
+            money,
+            text_paint_options: TextPaintOptions { text: "".to_string(), x: 30.0, y: 250.0, font_size: 15.0, color: BLACK }
         }
     }
 
@@ -38,11 +43,11 @@ impl PlayerStats {
             self.income_step = 0;
             self.money += self.income;
         }
+        self.text_paint_options.text = format!("Player: {}$ : ^{}$",self.money,self.income);
+        //self.text_paint_options.text = &format!("Player: {}$ : ^{}$",self.money,self.income), 30.0, 250.0);
     }
-}
 
-impl Showable for PlayerStats{
-    fn show_text(&self) -> String {
-        format!("Player: {}$ : ^{}$",self.money,self.income)
+    pub fn text(&self)->&TextPaintOptions{
+        &self.text_paint_options
     }
 }

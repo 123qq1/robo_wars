@@ -1,14 +1,17 @@
 mod shop_settings;
 
+use crate::game::ui::TextPaintOptions;
+
 use super::Status::{self, Faliure, Success};
+use macroquad::color::BLACK;
 use serde::Deserialize;
 
 use super::player::PlayerStats;
-use super::ui::Showable;
-
 use super::factory::Building;
+
 pub struct Shop{
     options: Vec<ShopOption>,
+    text_paint_options: TextPaintOptions,
 }
 
 #[derive(Debug,Deserialize)]
@@ -23,7 +26,7 @@ impl Shop {
         let json = shop_settings::get_json();
         let vs : Vec<ShopOption> = serde_json::from_str(&json).unwrap();
 
-        Shop { options: vs }
+        Shop { options: vs , text_paint_options:TextPaintOptions { text: "test".to_string(), x: 30.0, y: 300.0, font_size: 15.0, color: BLACK }}
     }
 
     pub fn buy(&self, p_stats : &mut PlayerStats, option_index:usize) -> Status<Building>{
@@ -37,23 +40,25 @@ impl Shop {
 
         Faliure("Not Enough Money".to_string())
     }
-}
 
-impl Showable for Shop {
-    fn show_text(&self) -> String {
+    pub fn step(&mut self){
         let mut s = "".to_string();
         self.options.iter().for_each(|o|{
             s += &o.show_text();
             s += "\n"
         });
-        s
+        self.text_paint_options.text = s;
+    }
+
+    pub fn text(&self)->&TextPaintOptions{
+        &self.text_paint_options
     }
 }
 
-impl Showable for ShopOption{
+impl ShopOption{
     fn show_text(&self) -> String {
         if !self.available {return "".to_string()}
 
-        format!("{} : {}$",self.product.show_text(),self.price)
+        format!("{} : {}$",self.product.name(),self.price)
     }
 }
