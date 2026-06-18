@@ -37,7 +37,8 @@ impl LaneManager{
 
     pub fn add_building(&mut self,faction:Faction, lane: usize, b: Building){
         let y = self.lanes[lane].y;
-        let v_b = V_Building::new(faction,50.0, y, lane, b);
+        let x = self.x_by_faction(&faction);
+        let v_b = V_Building::new(faction,x, y, lane, b);
         self.lanes[lane].add_building(v_b);
     }
 
@@ -45,6 +46,13 @@ impl LaneManager{
         let y = self.lanes[lane].y;
         let v_u = V_Unit::new(faction,50.0, y, lane, u);
         self.lanes[lane].add_unit(v_u);
+    }
+
+    fn x_by_faction(&self, faction:&Faction)-> f32{
+        match faction {
+            Faction::Player => {return 50.0;}
+            Faction::Enemy => {return 650.0;}
+        }
     }
 }
 
@@ -59,6 +67,7 @@ impl Lane{
 
     fn step(&mut self){
         self.units.iter_mut().for_each(|u|{u.move_unit();});
+        
         let mut us = Vec::new();
         self.buildings.iter_mut().for_each(|b|{
             if let Some(u) = b.produce(){

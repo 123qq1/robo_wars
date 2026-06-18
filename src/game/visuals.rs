@@ -17,7 +17,14 @@ impl V_Unit {
         V_Unit {faction, x, y, lane, stats }
     }
     pub fn move_unit(&mut self){
-        self.x += self.stats.speed();
+        match self.faction {
+            Faction::Enemy =>{
+                self.x -= self.stats.speed();
+            }
+            Faction::Player => {
+                self.x += self.stats.speed();
+            }
+        }
     }
     pub fn pos(&self) -> (f32,f32){
         (self.x,self.y)
