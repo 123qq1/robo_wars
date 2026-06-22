@@ -66,6 +66,14 @@ impl Manager {
         }
     }
 
+    pub fn test_buy_2(&mut self, lane: usize){
+        let s_b = self.shop.player_buy(&mut self.player, 1);
+        match s_b{
+            Status::Success(b) => {self.lane_manager.add_building(combat::Faction::Player, lane, b);}
+            Status::Faliure(s) => {println!("{}",s);}
+        }
+    }
+
     pub fn step(&mut self){
         let m_s = ManagerState::new(self);
 

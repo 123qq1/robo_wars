@@ -29,9 +29,13 @@ impl V_Unit {
     pub fn pos(&self) -> (f32,f32){
         (self.x,self.y)
     }
+
+    pub fn faction(&self) -> &Faction{
+       &self.faction
+    }
     
-    pub fn draw(&self){
-        draw_circle(self.x, self.y, 5.0, BLUE);
+    pub fn draw(&self, color: Color){
+        draw_circle(self.x, self.y, 5.0, color);
     }
 }
 
