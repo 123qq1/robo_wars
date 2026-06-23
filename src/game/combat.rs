@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use macroquad::color::{BLUE, GREEN};
+use macroquad::color::{BLUE, GREEN, RED, YELLOW};
 
 use super::robot::Unit;
 use super::factory::Building;
@@ -20,8 +20,8 @@ struct Lane{
     y : f32,
     buildings: Vec<V_Building>,
     units: Vec<(usize,V_Unit)>,
-    runners: Vec<usize>,
-    fighters: Vec<usize>,
+    runners: HashMap<Faction,Vec<usize>>,
+    fighters: HashMap<Faction,Vec<usize>>,
     forerunners: HashMap<Faction,usize>
 }
 
@@ -65,18 +65,26 @@ impl LaneManager{
 
 impl Lane{
     fn new(y: f32) -> Lane{
+        let mut fighters = HashMap::new();
+        fighters.insert(Faction::Player, Vec::new());
+        fighters.insert(Faction::Enemy, Vec::new());
+        
+        let mut runners = HashMap::new();
+        runners.insert(Faction::Player, Vec::new());
+        runners.insert(Faction::Enemy, Vec::new());
+
         Lane { 
             y,
             buildings: Vec::new(), 
             units: Vec::new(),
-            fighters: Vec::new(),
-            runners: Vec::new(),
+            fighters,
+            runners,
             forerunners: HashMap::new(),
         }
     }
 
     fn step(&mut self){
-        self.units.iter_mut().for_each(|(_,u)|{u.move_unit();});
+        self.step_runners();
 
         let mut us = Vec::new();
         self.buildings.iter_mut().for_each(|b|{
@@ -87,9 +95,18 @@ impl Lane{
         self.add_units(us);
 
         self.update_forerunners();
+        self.update_fighters();
 
         self.buildings.iter().for_each(|b|{b.draw();});
-        self.units.iter().for_each(|(i,u)|{self.debug_draw_forerunner_other_color(i,u);});
+        self.units.iter().for_each(|(i,u)|{self.debug_draw_units_different_color(i,u);});
+    }
+
+    fn step_runners(&mut self){
+        for (_,v) in &self.runners {
+            for i in v {
+                self.units[*i].1.move_unit();
+            }
+        }
     }
 
     fn is_forerunner(&self, i_1 : &usize, u : &V_Unit) -> bool{
@@ -100,9 +117,15 @@ impl Lane{
         false
     }
 
-    fn debug_draw_forerunner_other_color(&self ,i : &usize,u : &V_Unit){
+    fn debug_draw_units_different_color(&self ,i : &usize,u : &V_Unit){
         if self.is_forerunner(i, u){
             u.draw(GREEN);
+        }
+        else if self.fighters.get(u.faction()).unwrap().contains(i){
+            u.draw(RED);
+        }
+        else if self.runners.get(u.faction()).unwrap().contains(i){
+            u.draw(YELLOW);
         }
         else{
             u.draw(BLUE);
@@ -115,26 +138,36 @@ impl Lane{
 
     fn add_unit(&mut self, u: V_Unit){
         let i = self.units.len();
+        let f = u.faction();
+        self.runners.get_mut(f).unwrap().push(i);
         self.units.push((i,u));
-        self.runners.push(i);
     }
 
     fn update_forerunners(&mut self){
-        self.forerunners.insert(Faction::Player, self.find_forerunner(Faction::Player)); 
-        self.forerunners.insert(Faction::Enemy, self.find_forerunner(Faction::Enemy));
+        self.forerunners.clear();
+
+        if let Some(p) = self.find_forerunner(Faction::Player){
+            self.forerunners.insert(Faction::Player, p); 
+        }
+
+        if let Some(e) = self.find_forerunner(Faction::Enemy){
+            self.forerunners.insert(Faction::Enemy, e);
+        }
     }
 
-    fn find_forerunner(&self, faction: Faction) -> usize{
-        let runners  =  &self.runners;
-        let candidates = self.units.iter().filter(|(i,u)|{(*u.faction() == faction) && runners.contains(i)});
-        let mut  winner = (1,0.0); 
-        candidates.for_each(|(i,u)|{
+    fn find_forerunner(&self, faction: Faction) -> Option<usize>{
+        let candidates : Vec<&(usize, V_Unit)> = self.units.iter().filter(|(i,u)|{*u.faction() == faction}).collect();
+
+        if candidates.len() == 0 {return None;}
+
+        let mut  winner = (0,0.0); 
+        candidates.iter().for_each(|(i,u)|{
             let s = Lane::forerunner_score(&faction, u);
             if winner.1 < s {
                 winner = (*i,s);
             }
         });
-        winner.0
+        Some(winner.0)
     }
 
     fn forerunner_score(faction : &Faction, u: &V_Unit) -> f32{
@@ -154,36 +187,47 @@ impl Lane{
         let i = self.forerunners.get(&them);
         if i == None {return}
 
+        self.fighters.get_mut(&us).unwrap().clear();
+        self.runners.get_mut(&us).unwrap().clear();
+
         let u_p = self.units.iter().filter(|(_,u)|{*u.faction() == us});
 
         let i = *i.unwrap();
 
         let f_p = &self.units[i];
 
-        let f_u = u_p.filter(|(_,u)|{
+        u_p.for_each(|(i,u)|{
             let x_1 = u.pos().0;
             let x_2 = f_p.1.pos().0;
-            let dif = x_1 - x_2;
+            let dif = x_2 - x_1;
             let r = u.range();
-
-            (dif < r) && (-r > dif)
+            
+            //println!("{}",dif);
+            if dif.abs() < r{
+                self.fighters.get_mut(&us).unwrap().push(*i);
+            }
+            else{
+                self.runners.get_mut(&us).unwrap().push(*i);
+            }
 
         });
-
 
     }
 
     fn add_units(&mut self,mut us: Vec<V_Unit>){
         let i_1 = self.units.len();
         let i_2 = i_1 + us.len();
-        let mut is : Vec<usize> = (i_1..i_2).collect();
+        let is : Vec<usize> = (i_1..i_2).collect();
         let mut nu: Vec<(usize, V_Unit)> = Vec::new();
 
         for i in &is {
             nu.push((*i,us.pop().expect("other empty")));
         }
-
+        
         self.units.append(&mut nu);
-        self.runners.append(&mut is);
+        is.iter().for_each(|i|{
+            let f = self.units[*i].1.faction();
+            self.runners.get_mut(f).unwrap().push(*i);
+        });
     }
 }
