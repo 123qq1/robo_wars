@@ -22,6 +22,10 @@ impl Unit{
     pub fn speed(&self)->f32{
         self.speed
     }
+
+    pub fn range(&self) -> f32{
+        self.range
+    }
 }
 
 impl Clone for Unit{

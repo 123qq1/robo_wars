@@ -30,6 +30,10 @@ impl V_Unit {
         (self.x,self.y)
     }
 
+    pub fn range(&self) -> f32{
+        self.stats.range()
+    }
+
     pub fn faction(&self) -> &Faction{
        &self.faction
     }

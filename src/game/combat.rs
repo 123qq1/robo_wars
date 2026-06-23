@@ -144,6 +144,35 @@ impl Lane{
         }
     }
 
+    fn update_fighters(&mut self){
+        self.update_faction_fighter(Faction::Player,Faction::Enemy);
+        self.update_faction_fighter(Faction::Enemy,Faction::Player);
+    }
+
+    fn update_faction_fighter(&mut self, us : Faction, them : Faction){
+        
+        let i = self.forerunners.get(&them);
+        if i == None {return}
+
+        let u_p = self.units.iter().filter(|(_,u)|{*u.faction() == us});
+
+        let i = *i.unwrap();
+
+        let f_p = &self.units[i];
+
+        let f_u = u_p.filter(|(_,u)|{
+            let x_1 = u.pos().0;
+            let x_2 = f_p.1.pos().0;
+            let dif = x_1 - x_2;
+            let r = u.range();
+
+            (dif < r) && (-r > dif)
+
+        });
+
+
+    }
+
     fn add_units(&mut self,mut us: Vec<V_Unit>){
         let i_1 = self.units.len();
         let i_2 = i_1 + us.len();
