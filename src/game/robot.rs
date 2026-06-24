@@ -26,6 +26,14 @@ impl Unit{
     pub fn range(&self) -> f32{
         self.range
     }
+
+    pub fn dmg(&self) -> f32{
+        self.dmg
+    }
+
+    pub fn health(&self) -> f32{
+        self.health
+    }
 }
 
 impl Clone for Unit{

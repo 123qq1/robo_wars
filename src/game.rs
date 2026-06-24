@@ -52,7 +52,7 @@ impl Manager {
         Manager { 
             shop: Shop::new(), 
             player: PlayerStats::new(400,30,50), 
-            enemy : EnemyStats::new(300,30,50),
+            enemy : EnemyStats::new(40,3,50),
             lane_manager: LaneManager::new(4), 
             text_painter: TextPainter::new(),
         }

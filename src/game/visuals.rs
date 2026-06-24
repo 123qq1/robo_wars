@@ -1,3 +1,5 @@
+use super::combat::UnitAction;
+
 use super::robot::Unit;
 use super::factory::Building;
 use super::combat::Faction;
@@ -10,11 +12,13 @@ pub struct V_Unit{
     y: f32,
     lane: usize,
     stats: Unit,
+    dmg_taken: f32,
+    cur_action: UnitAction,
 }
 
 impl V_Unit {
     pub fn new(faction: Faction,x:f32,y:f32,lane: usize,stats: Unit) -> V_Unit{
-        V_Unit {faction, x, y, lane, stats }
+        V_Unit {faction, x, y, lane, stats ,dmg_taken: 0.0, cur_action: UnitAction::Wait}
     }
     pub fn move_unit(&mut self){
         match self.faction {
@@ -36,6 +40,32 @@ impl V_Unit {
 
     pub fn faction(&self) -> &Faction{
        &self.faction
+    }
+
+    pub fn dmg(&self) -> f32{
+        self.stats.dmg()
+    }
+
+    pub fn update_action(&mut self, action: UnitAction){
+        self.cur_action = action;
+    }
+
+    pub fn cur_action(&self) -> &UnitAction{
+        &self.cur_action
+    }
+
+    pub fn is_fighting(&self) -> bool{
+        self.cur_action == UnitAction::Fighting
+    }
+
+    pub fn is_running(&self) -> bool{
+        self.cur_action == UnitAction::Running
+    }
+
+    pub fn take_damage(&mut self, dmg : f32) -> bool{
+        self.dmg_taken += dmg;
+
+        return self.dmg_taken > self.stats.health()
     }
     
     pub fn draw(&self, color: Color){
