@@ -1,3 +1,5 @@
+use crate::game::combat::LaneManager;
+
 use super::combat::UnitAction;
 
 use super::robot::Unit;
@@ -23,9 +25,11 @@ impl V_Unit {
     pub fn move_unit(&mut self){
         match self.faction {
             Faction::Enemy =>{
+                if (self.x - self.range()) < LaneManager::x_by_faction(&Faction::Player) {return}
                 self.x -= self.stats.speed();
             }
             Faction::Player => {
+                if (self.x + self.range()) > LaneManager::x_by_faction(&Faction::Enemy) {return}
                 self.x += self.stats.speed();
             }
         }
@@ -42,7 +46,7 @@ impl V_Unit {
        &self.faction
     }
 
-    pub fn dmg(&self) -> f32{
+    pub fn dmg(&mut self) -> Option<f32>{
         self.stats.dmg()
     }
 

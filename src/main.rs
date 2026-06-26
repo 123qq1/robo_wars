@@ -12,10 +12,6 @@ async fn main() {
     //set_fullscreen(true);
 
     let mut manager = Manager::new();
-    manager.test_buy(0);
-    manager.test_buy(1);
-    manager.test_buy(2);
-    manager.test_buy_2(2);
 
     loop {
         clear_background(GRAY);

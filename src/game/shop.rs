@@ -1,5 +1,6 @@
 mod shop_settings;
 
+use crate::game::ManagerAction;
 use crate::game::enemy::EnemyStats;
 
 use super::Status::{self, Faliure, Success};
@@ -59,9 +60,18 @@ impl Shop {
         Faliure("Not Enough Money".to_string())
     }
 
-    pub fn step(&mut self){
+    pub fn step(&mut self) -> ManagerAction{
         let mut action = ShopAction::Wait;
         self.painter.show(ShopState::new(self), &mut action);
+
+        match action {
+            ShopAction::Buy(i) => {
+                return ManagerAction::P_Build(i)
+                
+            }
+            ShopAction::Wait => {}
+        }
+        ManagerAction::Wait
     }
 
     pub fn get_index(&self, building : Building)-> Option<usize>{

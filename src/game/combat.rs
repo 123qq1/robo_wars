@@ -60,7 +60,7 @@ impl LaneManager{
         self.lanes[lane].add_unit(v_u);
     }
 
-    fn x_by_faction(faction: &Faction)-> f32{
+    pub fn x_by_faction(faction: &Faction)-> f32{
         match faction {
             Faction::Player => {return 50.0; }
             Faction::Enemy  => {return 650.0;}
@@ -117,7 +117,14 @@ impl Lane{
 
         let i_d = dmg.unwrap();
 
-        let target = &mut self.units[i_d.0].1;
+        let o_t= self.units.get_mut(i_d.0);
+
+        match o_t {
+            None => return,
+            _ => (),
+        }
+
+        let target = &mut o_t.unwrap().1;
 
         if target.take_damage(i_d.1) {
             let f = target.faction();
@@ -134,17 +141,19 @@ impl Lane{
         }
     }
 
-    fn faction_calc_damage(&self, us: Faction, them : Faction, ) -> Option<(usize,f32)>{
+    fn faction_calc_damage(&mut self, us: Faction, them : Faction, ) -> Option<(usize,f32)>{
         let target = self.forerunners.get(&them);
         if target == None {return None;}
         
         let t_i = target.unwrap();
 
         let mut dmg = 0.0;
-        let f_s = self.units.iter().filter(|(_,u)|{u.is_fighting() && *u.faction() == us});
+        let f_s = self.units.iter_mut().filter(|(_,u)|{u.is_fighting() && *u.faction() == us});
 
         for (_,f) in f_s{
-            dmg += f.dmg();
+            if let Some(d) = f.dmg() {
+                dmg += d;
+            }
         }
 
         Some((*t_i,dmg))

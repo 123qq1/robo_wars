@@ -17,10 +17,10 @@ use shop::Shop;
 use player::PlayerStats;
 use combat::LaneManager;
 use enemy::EnemyStats;
-use ui::TextPainter;
+use {ui::TextPainter, ui::LanePainter};
 use shop::ShopState;
 
-use crate::game::factory::Building;
+use factory::Building;
 
 pub struct Manager{
     shop: Shop,
@@ -28,6 +28,10 @@ pub struct Manager{
     enemy: EnemyStats,
     lane_manager: LaneManager,
     text_painter: TextPainter,
+    player_action: ManagerAction,
+    enemy_action: ManagerAction,
+    selected_lane: usize,
+    lane_painter: LanePainter
 }
 
 pub struct ManagerState{
@@ -45,16 +49,21 @@ impl ManagerState {
 pub enum ManagerAction {
     Wait,
     E_Build(Building),
+    P_Build(usize),
 }
 
 impl Manager {
     pub fn new() -> Manager{
         Manager { 
             shop: Shop::new(), 
-            player: PlayerStats::new(400,30,50), 
-            enemy : EnemyStats::new(40,3,50),
+            player: PlayerStats::new(400,30,200), 
+            enemy : EnemyStats::new(55,0,500),
             lane_manager: LaneManager::new(4), 
             text_painter: TextPainter::new(),
+            player_action: ManagerAction::Wait,
+            enemy_action: ManagerAction::Wait,
+            selected_lane: 0,
+            lane_painter: LanePainter {  },
         }
     }
 
@@ -78,21 +87,32 @@ impl Manager {
         let m_s = ManagerState::new(self);
 
         self.lane_manager.step();
-        
-        let cur_action = self.enemy.step(&m_s);
-        self.act(cur_action);
-
+        self.enemy_action = self.enemy.step(&m_s);
         self.player.step();
-        self.shop.step();
+        self.player_action = self.shop.step();
+        self.update_selected_lane();
 
+        self.act();
+
+        self.lane_painter.draw_lane_bounds();
         self.text_painter.paint_text(&self.enemy.text());
         self.text_painter.paint_text(&self.player.text());
     }
 
-    pub fn act(&mut self, action: ManagerAction){
-        match action {
+    pub fn update_selected_lane(&mut self){
+        let o_l = self.lane_painter.paint_lane_selector(self.selected_lane);
+
+        match o_l {
+            Some(i) => self.selected_lane = i,
+            None => (),
+        }
+    }
+
+    pub fn act(&mut self){
+        match &self.enemy_action {
+            ManagerAction::Wait => {}
             ManagerAction::E_Build(b) => {
-                if let Some(i) = self.shop.get_index(b){
+                if let Some(i) = self.shop.get_index(b.clone()){
                     let s = self.shop.enemy_buy(&mut self.enemy, i);
 
                     match s {
@@ -103,7 +123,23 @@ impl Manager {
                     }
                 }
             }
-            ManagerAction::Wait => {}
+            ManagerAction::P_Build(b) => (),
+        }
+
+        match &self.player_action {
+            ManagerAction::Wait => (),
+            ManagerAction::P_Build(i) => {
+                let s = self.shop.player_buy(&mut self.player, *i);
+                    
+                match s {
+                    Status::Faliure(_) => {},
+                    Status::Success(b) =>{
+                        self.lane_manager.add_building(combat::Faction::Player, self.selected_lane, b);
+                    }
+                }
+                
+            }
+            ManagerAction::E_Build(_) => (),
         }
     }
 }

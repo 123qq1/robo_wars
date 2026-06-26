@@ -29,7 +29,7 @@ impl Building{
             return None
         }
         
-        self.progress = 0.0;
+        self.progress -= self.finish;
         Some(self.product.clone())
     }
 
@@ -44,7 +44,7 @@ impl Clone for Building{
             name: self.name.clone(),
             speed: self.speed, 
             product: self.product.clone(), 
-            progress: self.progress, 
+            progress: 0.0, 
             finish: self.finish }
     }
 }
