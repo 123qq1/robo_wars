@@ -77,11 +77,9 @@ impl Manager {
     pub fn step(&mut self){
         let m_s = ManagerState::new(self);
 
-        let mut cur_action;
-
         self.lane_manager.step();
         
-        cur_action = self.enemy.step(&m_s);
+        let cur_action = self.enemy.step(&m_s);
         self.act(cur_action);
 
         self.player.step();
@@ -89,7 +87,6 @@ impl Manager {
 
         self.text_painter.paint_text(&self.enemy.text());
         self.text_painter.paint_text(&self.player.text());
-        self.text_painter.paint_text(&self.shop.text());
     }
 
     pub fn act(&mut self, action: ManagerAction){

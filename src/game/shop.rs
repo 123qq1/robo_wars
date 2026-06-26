@@ -1,18 +1,23 @@
 mod shop_settings;
 
 use crate::game::enemy::EnemyStats;
-use crate::game::ui::TextPaintOptions;
 
 use super::Status::{self, Faliure, Success};
-use macroquad::color::BLACK;
 use serde::Deserialize;
 
 use super::player::PlayerStats;
 use super::factory::Building;
 
+mod shop_painter;
+
 pub struct Shop{
     options: Vec<ShopOption>,
-    text_paint_options: TextPaintOptions,
+    painter: shop_painter::Painter
+}
+
+pub enum ShopAction{
+    Wait,
+    Buy(usize),
 }
 
 #[derive(Debug,Deserialize)]
@@ -27,7 +32,7 @@ impl Shop {
         let json = shop_settings::get_json();
         let vs : Vec<ShopOption> = serde_json::from_str(&json).unwrap();
 
-        Shop { options: vs , text_paint_options:TextPaintOptions { text: "test".to_string(), x: 30.0, y: 300.0, font_size: 15.0, color: BLACK }}
+        Shop { options: vs, painter: shop_painter::Painter {}}
     }
 
     pub fn player_buy(&self, p_stats : &mut PlayerStats, option_index:usize) -> Status<Building>{
@@ -55,16 +60,8 @@ impl Shop {
     }
 
     pub fn step(&mut self){
-        let mut s = "".to_string();
-        self.options.iter().for_each(|o|{
-            s += &o.show_text();
-            s += "\n"
-        });
-        self.text_paint_options.text = s;
-    }
-
-    pub fn text(&self)->&TextPaintOptions{
-        &self.text_paint_options
+        let mut action = ShopAction::Wait;
+        self.painter.show(ShopState::new(self), &mut action);
     }
 
     pub fn get_index(&self, building : Building)-> Option<usize>{
@@ -79,14 +76,6 @@ impl Shop {
     }
 }
 
-impl ShopOption{
-    fn show_text(&self) -> String {
-        if !self.available {return "".to_string()}
-
-        format!("{} : {}$",self.product.name(),self.price)
-    }
-}
-
 pub struct ShopState{
     options: Vec<ShopOptionState>,
 }
@@ -98,7 +87,7 @@ pub struct ShopOptionState{
 }
 
 impl ShopOptionState {
-    pub fn new(option: &ShopOption)->ShopOptionState{
+    fn new(option: &ShopOption) -> ShopOptionState{
         ShopOptionState { 
             product: option.product.clone(),
             price: option.price,
