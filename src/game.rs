@@ -48,7 +48,7 @@ impl ManagerState {
 
 pub enum ManagerAction {
     Wait,
-    E_Build(Building),
+    E_Build{shop_index: usize, lane_index : usize},
     P_Build(usize),
 }
 
@@ -57,7 +57,7 @@ impl Manager {
         Manager { 
             shop: Shop::new(), 
             player: PlayerStats::new(400,30,200), 
-            enemy : EnemyStats::new(55,0,500),
+            enemy : EnemyStats::new(),
             lane_manager: LaneManager::new(4), 
             text_painter: TextPainter::new(),
             player_action: ManagerAction::Wait,
@@ -95,7 +95,6 @@ impl Manager {
         self.act();
 
         self.lane_painter.draw_lane_bounds();
-        self.text_painter.paint_text(&self.enemy.text());
         self.text_painter.paint_text(&self.player.text());
     }
 
@@ -110,24 +109,21 @@ impl Manager {
 
     pub fn act(&mut self){
         match &self.enemy_action {
-            ManagerAction::Wait => {}
-            ManagerAction::E_Build(b) => {
-                if let Some(i) = self.shop.get_index(b.clone()){
-                    let s = self.shop.enemy_buy(&mut self.enemy, i);
+            ManagerAction::E_Build{shop_index:i,lane_index:l} => {
+                let s = self.shop.enemy_buy(&mut self.enemy, *i);
 
-                    match s {
-                        Status::Faliure(_) => {},
-                        Status::Success(b) =>{
-                            self.lane_manager.add_building(combat::Faction::Enemy, 1, b);
-                        }
+                match s {
+                    Status::Faliure(_) => {},
+                    Status::Success(b) =>{
+                        self.lane_manager.add_building(combat::Faction::Enemy, *l, b);
                     }
                 }
+                
             }
-            ManagerAction::P_Build(b) => (),
+            _ => (),
         }
 
         match &self.player_action {
-            ManagerAction::Wait => (),
             ManagerAction::P_Build(i) => {
                 let s = self.shop.player_buy(&mut self.player, *i);
                     
@@ -139,7 +135,7 @@ impl Manager {
                 }
                 
             }
-            ManagerAction::E_Build(_) => (),
+            _ => (),
         }
     }
 }

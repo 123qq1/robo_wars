@@ -1,40 +1,28 @@
-use macroquad::color::BLACK;
+use crate::game::{ManagerAction, ManagerState};
 
-use crate::game::{ManagerAction, ManagerState, factory::Building, ui::TextPaintOptions};
+mod ai_settings;
 
 pub struct EnemyStats{
-    income_step: i32,
-    income_payout: i32,
-    income: i32,
     money : i32,
     ai : EnemyAI,
-    text_painter_options: TextPaintOptions
 }
 
 
 impl EnemyStats {
-    pub fn new(money: i32,income:i32, income_payout : i32) -> EnemyStats{
+    pub fn new() -> EnemyStats{
         EnemyStats { 
-            money,
-            income ,
-            income_step:0,
-            income_payout,
+            money : 999999999,
             ai:EnemyAI::new(),
-            text_painter_options : TextPaintOptions{ text: "".to_string(), x: 30.0, y: 200.0, font_size: 15.0, color: BLACK }
         }
     }
     pub fn step(&mut self, man: &ManagerState) -> ManagerAction{
-        self.income_step += 1;
-        if self.income_step > self.income_payout {
-            self.income_step = 0;
-            self.money += self.income;
-        }
+        self.money = 999999999;
 
-        match self.ai.step(&self, man) {
-            EnemyAIStates::Build(b) =>{
-                return ManagerAction::E_Build(b);
+        match self.ai.step() {
+            EnemyAIAction::Build{shop_index:i,lane_index:l} =>{
+                return ManagerAction::E_Build{shop_index: i,lane_index: l};
             },
-            EnemyAIStates::Wait => {
+            EnemyAIAction::Wait => {
                 return ManagerAction::Wait
             },
         }
@@ -45,34 +33,86 @@ impl EnemyStats {
         self.money -= cost;
         Some(self.money)
     }
-
-    pub fn text(&self)->&TextPaintOptions{
-        &self.text_painter_options
-    }
 }
 
-pub enum EnemyAIStates {
-    Build(Building),
+pub enum EnemyAIAction {
+    Build{shop_index : usize, lane_index : usize},
     Wait,
+}
 
+enum EnemyAIState{
+    Wait,
+    Act,
+    End,
 }
 
 pub struct EnemyAI{
-
+    state: EnemyAIState,
+    steps: Vec<ai_settings::RawAIActions>,
+    cur_step: usize,
+    progress: i32,
+    finish : i32,
 }
 
 impl EnemyAI {
     pub fn new()->EnemyAI{
+
+        let steps = serde_json::from_str(&ai_settings::get_json()).unwrap();
+        println!("{:?}",&steps);
         EnemyAI{
+            state: EnemyAIState::Act,
+            cur_step: 0,
+            progress: 0,
+            finish: 0,
+            steps
         }   
     }
 
-    pub fn step(&self, self_state: &EnemyStats, man_state: &ManagerState)->EnemyAIStates{
+    pub fn step(&mut self)->EnemyAIAction{
 
-        if let Some(b) = man_state.shop_state.get_buyable(self_state.money) {
-            return EnemyAIStates::Build(b);
+        match &self.state {
+            EnemyAIState::Act => {
+                let a = self.act();
+                return a;
+            }
+            EnemyAIState::Wait => {
+                self.state_step();
+                return EnemyAIAction::Wait;
+            }
+            EnemyAIState::End => return EnemyAIAction::Wait,
         }
+    }
 
-        EnemyAIStates::Wait
+    pub fn act(&mut self)->EnemyAIAction{
+        let c_s = self.cur_step;
+        let s = self.steps.get(c_s).unwrap();
+        self.cur_step += 1;
+
+        match s {
+            ai_settings::RawAIActions::Build { shop_index: s, lane_index : l } => {
+                return EnemyAIAction::Build { shop_index: *s, lane_index: *l }
+            }
+            ai_settings::RawAIActions::Wait(i) => {
+                self.progress = 0;
+                self.finish = *i;
+                self.state = EnemyAIState::Wait;
+
+                return EnemyAIAction::Wait
+            }
+            ai_settings::RawAIActions::End => {
+                self.state = EnemyAIState::End;
+                return EnemyAIAction::Wait
+            },
+        }
+    }
+
+    pub fn state_step(&mut self){
+        self.progress += 1;
+
+        if self.progress > self.finish {
+            self.state = EnemyAIState::Act;
+        }
     }
 }
+
+
