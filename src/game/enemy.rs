@@ -1,4 +1,4 @@
-use crate::game::{ManagerAction, ManagerState};
+use crate::game::{ManagerAction, GameManagerState};
 
 mod ai_settings;
 
@@ -15,7 +15,7 @@ impl EnemyStats {
             ai:EnemyAI::new(),
         }
     }
-    pub fn step(&mut self, man: &ManagerState) -> ManagerAction{
+    pub fn step(&mut self, man: &GameManagerState) -> ManagerAction{
         self.money = 999999999;
 
         match self.ai.step() {

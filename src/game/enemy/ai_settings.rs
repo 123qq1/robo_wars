@@ -10,10 +10,10 @@ pub enum RawAIActions{
 pub fn get_json() -> String{
     r#"
         [
-            {"Wait": 10},
+            {"Wait": 100},
+            {"Build": {"shop_index" :0,"lane_index": 1}},
             {"Wait": 500},
             {"Build": {"shop_index" :0,"lane_index": 0}},
-            {"Build": {"shop_index" :0,"lane_index": 1}},
             {"Build": {"shop_index" :0,"lane_index": 2}},
             "End"        
         ]

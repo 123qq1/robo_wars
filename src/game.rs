@@ -22,7 +22,7 @@ use shop::ShopState;
 
 use factory::Building;
 
-pub struct Manager{
+pub struct GameManager{
     shop: Shop,
     player: PlayerStats,
     enemy: EnemyStats,
@@ -34,13 +34,13 @@ pub struct Manager{
     lane_painter: LanePainter
 }
 
-pub struct ManagerState{
+pub struct GameManagerState{
     shop_state: ShopState,
 }
 
-impl ManagerState {
-    pub fn new(man: &Manager)->ManagerState{
-        ManagerState { 
+impl GameManagerState {
+    pub fn new(man: &GameManager)->GameManagerState{
+        GameManagerState { 
             shop_state: ShopState::new(&man.shop), 
         }
     }
@@ -52,9 +52,9 @@ pub enum ManagerAction {
     P_Build(usize),
 }
 
-impl Manager {
-    pub fn new() -> Manager{
-        Manager { 
+impl GameManager {
+    pub fn new() -> GameManager{
+        GameManager { 
             shop: Shop::new(), 
             player: PlayerStats::new(400,30,200), 
             enemy : EnemyStats::new(),
@@ -67,24 +67,8 @@ impl Manager {
         }
     }
 
-    pub fn test_buy(&mut self, lane: usize){
-        let s_b = self.shop.player_buy(&mut self.player, 0);
-        match s_b{
-            Status::Success(b) => {self.lane_manager.add_building(combat::Faction::Player, lane, b);}
-            Status::Faliure(s) => {println!("{}",s);}
-        }
-    }
-
-    pub fn test_buy_2(&mut self, lane: usize){
-        let s_b = self.shop.player_buy(&mut self.player, 1);
-        match s_b{
-            Status::Success(b) => {self.lane_manager.add_building(combat::Faction::Player, lane, b);}
-            Status::Faliure(s) => {println!("{}",s);}
-        }
-    }
-
     pub fn step(&mut self){
-        let m_s = ManagerState::new(self);
+        let m_s = GameManagerState::new(self);
 
         self.lane_manager.step();
         self.enemy_action = self.enemy.step(&m_s);
