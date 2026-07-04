@@ -53,11 +53,11 @@ pub enum ManagerAction {
 }
 
 impl GameManager {
-    pub fn new() -> GameManager{
+    pub async fn new() -> GameManager{
         GameManager { 
-            shop: Shop::new(), 
+            shop: Shop::new().await, 
             player: PlayerStats::new(400,30,200), 
-            enemy : EnemyStats::new(),
+            enemy : EnemyStats::new().await,
             lane_manager: LaneManager::new(4), 
             text_painter: TextPainter::new(),
             player_action: ManagerAction::Wait,

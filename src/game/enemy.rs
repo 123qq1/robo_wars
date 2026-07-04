@@ -11,10 +11,10 @@ pub struct EnemyStats{
 
 
 impl EnemyStats {
-    pub fn new() -> EnemyStats{
+    pub async fn new() -> EnemyStats{
         EnemyStats { 
             ai:EnemyAI::new(),
-            buildings: enemy_buildings::get_buildings(),
+            buildings: enemy_buildings::get_buildings().await,
         }
     }
     pub fn step(&mut self, man: &GameManagerState) -> ManagerAction{

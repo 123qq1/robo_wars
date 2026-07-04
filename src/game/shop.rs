@@ -4,7 +4,6 @@ use crate::game::ManagerAction;
 use crate::game::enemy::EnemyStats;
 
 use super::Status::{self, Faliure, Success};
-use serde::Deserialize;
 
 use super::player::PlayerStats;
 use super::factory::Building;
@@ -21,7 +20,6 @@ pub enum ShopAction{
     Buy(usize),
 }
 
-#[derive(Debug,Deserialize)]
 struct ShopOption{
     product: Building,
     price: i32,
@@ -29,9 +27,8 @@ struct ShopOption{
 }
 
 impl Shop {
-    pub fn new() -> Shop{
-        let json = shop_settings::get_json();
-        let vs : Vec<ShopOption> = serde_json::from_str(&json).unwrap();
+    pub async fn new() -> Shop{
+        let vs : Vec<ShopOption> = shop_settings::get_shop_options().await;
 
         Shop { options: vs, painter: shop_painter::Painter {}}
     }

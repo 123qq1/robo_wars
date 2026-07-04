@@ -5,7 +5,7 @@ use super::combat::UnitAction;
 use super::robot::Unit;
 use super::factory::Building;
 use super::combat::Faction;
-use macroquad::prelude::*;
+use macroquad::{prelude::*, texture};
 
 #[derive(Debug)]
 pub struct V_Unit{
@@ -73,7 +73,7 @@ impl V_Unit {
     }
     
     pub fn draw(&self, color: Color){
-        draw_circle(self.x, self.y, 5.0, color);
+        draw_texture(self.stats.texture(), self.x, self.y, color);
     }
 }
 

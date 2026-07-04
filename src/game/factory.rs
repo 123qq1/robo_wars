@@ -1,13 +1,34 @@
-use super::robot::Unit;
+use super::robot::{Unit,RawUnit};
 use serde::Deserialize;
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug)]
 pub struct Building{
     name: String,
     progress: f32,
     finish: f32,
     speed: f32,
     product: Unit,
+}
+
+#[derive(Debug,Deserialize)]
+pub struct RawBuilding{
+    name: String,
+    progress: f32,
+    finish: f32,
+    speed: f32,
+    product: RawUnit,
+}
+
+impl RawBuilding {
+    pub async fn into_b(self) -> Building {
+        Building { 
+            name: self.name, 
+            progress: self.progress, 
+            finish: self.finish, 
+            speed: self.speed, 
+            product: self.product.into_u().await, 
+        }
+    }
 }
 
 impl Building{

@@ -1,6 +1,7 @@
+use macroquad::texture::{Texture2D, load_texture};
 use serde::Deserialize;
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug)]
 pub struct Unit{
     name: String,
     health: f32,
@@ -10,10 +11,41 @@ pub struct Unit{
     progress: f32,
     finish: f32,
     rate: f32,
+    texture: Texture2D,
+}
+
+#[derive(Debug,Deserialize)]
+pub struct RawUnit{
+    name: String,
+    health: f32,
+    speed: f32,
+    dmg: f32,
+    range: f32,
+    progress: f32,
+    finish: f32,
+    rate: f32,
+    texture: String,
+}
+
+impl RawUnit {
+    pub async fn into_u(self) -> Unit {
+        let texture = load_texture(&self.texture).await.unwrap();
+        Unit{
+            name : self.name,
+            health : self.health,
+            speed : self.speed,
+            dmg : self.dmg,
+            range : self.range,
+            progress : self.progress,
+            finish : self.finish,
+            rate: self.rate,
+            texture,            
+        }
+    }
 }
 
 impl Unit{
-    pub fn new(name: String,health:f32,speed:f32,dmg:f32,range:f32,finish:f32, rate: f32) -> Unit{
+    pub fn new(name: String,health:f32,speed:f32,dmg:f32,range:f32,finish:f32, rate: f32, texture: Texture2D) -> Unit{
         Unit{
             name,
             health,
@@ -23,6 +55,7 @@ impl Unit{
             finish,
             progress: 0.0,
             rate,
+            texture,
         }
     }
     pub fn speed(&self)->f32{
@@ -46,12 +79,15 @@ impl Unit{
     pub fn health(&self) -> f32{
         self.health
     }
-
+    pub fn texture(&self) -> &Texture2D{
+        &self.texture
+    }
+    
 
 }
 
 impl Clone for Unit{
     fn clone(&self) -> Self {
-        Self {name: self.name.clone(), health: self.health, speed: self.speed, dmg: self.dmg, range: self.range, finish: self.finish, rate: self.rate , progress: 0.0}
+        Self {name: self.name.clone(), health: self.health, speed: self.speed, dmg: self.dmg, range: self.range, finish: self.finish, rate: self.rate , progress: 0.0, texture: self.texture.weak_clone()}
     }
 }

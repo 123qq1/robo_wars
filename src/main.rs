@@ -10,13 +10,17 @@ async fn main() {
 
     let mut window_s = (1500.0,1000.0);
 
+    set_pc_assets_folder("assets");
+
 
     //set_fullscreen(true);
 
-    let mut game_manager = GameManager::new();
+    let mut game_manager = GameManager::new().await;
     let mut menu_manager = MenuManager::new();
     
     let mut cur_game_state= GameState::MainMenu;
+
+    build_textures_atlas();
 
     loop {
         clear_background(GRAY);
