@@ -48,18 +48,6 @@ impl Shop {
         Faliure("Not Enough Money".to_string())
     }
 
-    pub fn enemy_buy(&self, e_stats : &mut EnemyStats, option_index:usize)->Status<Building>{
-        let b = &self.options[option_index];
-
-        if !b.available {return Faliure("Item not available".to_string());}
-
-        if let Some(m) = e_stats.pay(b.price){
-            return Success(b.product.clone());
-        }
-        
-        Faliure("Not Enough Money".to_string())
-    }
-
     pub fn step(&mut self) -> ManagerAction{
         let mut action = ShopAction::Wait;
         self.painter.show(ShopState::new(self), &mut action);

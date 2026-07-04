@@ -48,7 +48,7 @@ impl GameManagerState {
 
 pub enum ManagerAction {
     Wait,
-    E_Build{shop_index: usize, lane_index : usize},
+    E_Build{building: Building, lane_index : usize},
     P_Build(usize),
 }
 
@@ -93,15 +93,8 @@ impl GameManager {
 
     pub fn act(&mut self){
         match &self.enemy_action {
-            ManagerAction::E_Build{shop_index:i,lane_index:l} => {
-                let s = self.shop.enemy_buy(&mut self.enemy, *i);
-
-                match s {
-                    Status::Faliure(_) => {},
-                    Status::Success(b) =>{
-                        self.lane_manager.add_building(combat::Faction::Enemy, *l, b);
-                    }
-                }
+            ManagerAction::E_Build{building:b,lane_index:l} => {
+                self.lane_manager.add_building(combat::Faction::Enemy, *l, b.clone());
                 
             }
             _ => (),

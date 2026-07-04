@@ -1,42 +1,39 @@
-use crate::game::{ManagerAction, GameManagerState};
+use super::{GameManagerState, ManagerAction, factory::Building};
 
 mod ai_settings;
 
+mod enemy_buildings;
+
 pub struct EnemyStats{
-    money : i32,
     ai : EnemyAI,
+    buildings : Vec<Building>,
 }
 
 
 impl EnemyStats {
     pub fn new() -> EnemyStats{
         EnemyStats { 
-            money : 999999999,
             ai:EnemyAI::new(),
+            buildings: enemy_buildings::get_buildings(),
         }
     }
     pub fn step(&mut self, man: &GameManagerState) -> ManagerAction{
-        self.money = 999999999;
 
         match self.ai.step() {
-            EnemyAIAction::Build{shop_index:i,lane_index:l} =>{
-                return ManagerAction::E_Build{shop_index: i,lane_index: l};
+            EnemyAIAction::Build{building_index:i,lane_index:l} =>{
+                let b = self.buildings.get(i).unwrap();
+
+                return ManagerAction::E_Build{building: b.clone(),lane_index: l};
             },
             EnemyAIAction::Wait => {
                 return ManagerAction::Wait
             },
         }
     }
-
-    pub fn pay(&mut self,cost: i32) -> Option<i32>{
-        if self.money < cost {return None} 
-        self.money -= cost;
-        Some(self.money)
-    }
 }
 
 pub enum EnemyAIAction {
-    Build{shop_index : usize, lane_index : usize},
+    Build{building_index : usize, lane_index : usize},
     Wait,
 }
 
@@ -90,7 +87,7 @@ impl EnemyAI {
 
         match s {
             ai_settings::RawAIActions::Build { shop_index: s, lane_index : l } => {
-                return EnemyAIAction::Build { shop_index: *s, lane_index: *l }
+                return EnemyAIAction::Build { building_index: *s, lane_index: *l }
             }
             ai_settings::RawAIActions::Wait(i) => {
                 self.progress = 0;
