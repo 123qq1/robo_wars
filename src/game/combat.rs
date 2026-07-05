@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 
-use macroquad::color::{BLUE, GREEN, RED, YELLOW};
+use macroquad::color::{BLUE, GREEN, RED, WHITE, YELLOW};
 
 use super::robot::Unit;
 use super::factory::Building;
 use super::visuals::{V_Building,V_Unit};
+
+const X_SIZE : f32 = 16.0;
 
 #[derive(Debug,Clone,Eq, Hash, PartialEq)]
 pub enum Faction {
@@ -48,10 +50,21 @@ impl LaneManager{
     }
 
     pub fn add_building(&mut self,faction:Faction, lane: usize, b: Building){
-        let y = self.lanes[lane].y;
+        let lane_man = &mut self.lanes[lane];
+
+        let building_count = lane_man.count_buildings(&faction);
+
+        let y = lane_man.y;
         let x = LaneManager::x_by_faction(&faction);
-        let v_b = V_Building::new(faction,x, y, lane, b);
-        self.lanes[lane].add_building(v_b);
+        let x_offset = LaneManager::calc_x_offset(building_count as f32, &faction);
+
+        let v_b = V_Building::new(faction,x, y, lane, b,x_offset);
+        lane_man.add_building(v_b);
+    }
+
+    fn calc_x_offset(building_count: f32, faction: &Faction) -> f32{
+        if *faction == Faction::Player { -X_SIZE * (building_count as f32 + 1.0)}
+        else {X_SIZE * (building_count as f32 + 1.0)}
     }
 
     fn add_unit(&mut self,faction:Faction, lane: usize, u: Unit){
@@ -62,7 +75,7 @@ impl LaneManager{
 
     pub fn x_by_faction(faction: &Faction)-> f32{
         match faction {
-            Faction::Player => {return 50.0; }
+            Faction::Player => {return 100.0; }
             Faction::Enemy  => {return 650.0;}
         }
     }
@@ -76,6 +89,10 @@ impl Lane{
             units: Vec::new(),
             forerunners: HashMap::new(),
         }
+    }
+
+    fn count_buildings(&self, faction: &Faction) -> usize{
+        self.buildings.iter().filter(|b|{*b.faction() == *faction}).count()
     }
 
     fn step(&mut self){
@@ -95,7 +112,7 @@ impl Lane{
         self.fight();
 
         self.buildings.iter().for_each(|b|{b.draw();});
-        self.units.iter().for_each(|(i,u)|{self.debug_draw_units_different_color(i,u);});
+        self.units.iter().for_each(|(_,u)|{u.draw(WHITE);});
     }
 
     fn step_runners(&mut self){

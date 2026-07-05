@@ -20,7 +20,8 @@ pub struct V_Unit{
 
 impl V_Unit {
     pub fn new(faction: Faction,x:f32,y:f32,lane: usize,stats: Unit) -> V_Unit{
-        V_Unit {faction, x, y, lane, stats ,dmg_taken: 0.0, cur_action: UnitAction::Wait}
+        let d_y = rand::gen_range(-2.0, 2.0);
+        V_Unit {faction, x, y: y + d_y, lane, stats ,dmg_taken: 0.0, cur_action: UnitAction::Wait}
     }
     pub fn move_unit(&mut self){
         match self.faction {
@@ -73,7 +74,9 @@ impl V_Unit {
     }
     
     pub fn draw(&self, color: Color){
-        draw_texture(self.stats.texture(), self.x, self.y, color);
+        let x = self.x - 8.0;
+        let y = self.y - 16.0;
+        draw_texture(self.stats.texture(), x, y, color);
     }
 }
 
@@ -83,11 +86,12 @@ pub struct V_Building{
     y: f32,
     lane: usize,
     stats: Building,
+    x_offset: f32,
 }
 
 impl V_Building{
-    pub fn new(faction:Faction,x:f32,y:f32,lane:usize,stats:Building) -> V_Building{
-        V_Building {faction, x, y, lane, stats }
+    pub fn new(faction:Faction,x:f32,y:f32,lane:usize,stats:Building, x_offset: f32) -> V_Building{
+        V_Building {faction, x, y, lane, stats , x_offset}
     }
     pub fn produce(&mut self) -> Option<V_Unit>{
         let p = self.stats.produce();
@@ -100,10 +104,13 @@ impl V_Building{
         (self.x,self.y)
     }
 
+    pub fn faction(&self) -> &Faction{
+        &self.faction
+    }
+
     pub fn draw(&self){
-        let v1 = Vec2 { x: self.x+5.0, y: self.y };
-        let v2 = Vec2 { x: self.x, y: self.y-10.0 };
-        let v3 = Vec2 { x: self.x-5.0, y: self.y };
-        draw_triangle(v1, v2, v3, GREEN);
+        let x = self.x - 8.0 + self.x_offset;
+        let y = self.y - 16.0;
+        draw_texture(self.stats.texture(), x, y, WHITE);
     }
 }
