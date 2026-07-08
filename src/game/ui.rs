@@ -30,7 +30,7 @@ pub struct LanePainter{
 }
 
 impl LanePainter{
-    pub fn draw_lane_bounds(&self){
+    pub fn _draw_lane_bounds(&self){
         let p_x = LaneManager::x_by_faction(&super::combat::Faction::Enemy);
         let e_x = LaneManager::x_by_faction(&super::combat::Faction::Player);
 

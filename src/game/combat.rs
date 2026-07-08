@@ -5,6 +5,7 @@ use macroquad::color::{BLUE, GREEN, RED, WHITE, YELLOW};
 use super::robot::Unit;
 use super::factory::Building;
 use super::visuals::{V_Building,V_Unit};
+use super::wall::WallManager;
 
 const X_SIZE : f32 = 16.0;
 
@@ -23,6 +24,7 @@ pub enum UnitAction{
 
 pub struct LaneManager{
     lanes: Vec<Lane>,
+    wall_manager: WallManager, 
 }
 
 struct Lane{
@@ -33,7 +35,7 @@ struct Lane{
 }
 
 impl LaneManager{
-    pub fn new(lane_count : usize) -> LaneManager{
+    pub async fn new(lane_count : usize) -> LaneManager{
         let mut v = Vec::new();
 
         for y in 0..lane_count {
@@ -41,12 +43,14 @@ impl LaneManager{
         }
 
         LaneManager { 
-            lanes: v
+            lanes: v,
+            wall_manager: WallManager::new().await,
         }
     }
 
     pub fn step(&mut self){
         self.lanes.iter_mut().for_each(|l|{l.step()});
+        self.wall_manager.step();
     }
 
     pub fn add_building(&mut self,faction:Faction, lane: usize, b: Building){
@@ -75,7 +79,7 @@ impl LaneManager{
 
     pub fn x_by_faction(faction: &Faction)-> f32{
         match faction {
-            Faction::Player => {return 100.0; }
+            Faction::Player => {return 100.0;}
             Faction::Enemy  => {return 650.0;}
         }
     }
@@ -184,7 +188,7 @@ impl Lane{
         false
     }
 
-    fn debug_draw_units_different_color(&self ,i : &usize,u : &V_Unit){
+    fn _debug_draw_units_different_color(&self ,i : &usize,u : &V_Unit){
         if self.is_forerunner(i, u){
             u.draw(GREEN);
         }

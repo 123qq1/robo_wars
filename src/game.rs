@@ -7,6 +7,7 @@ mod shop;
 mod combat;
 mod enemy;
 mod ui;
+mod wall;
 
 pub enum Status<T>{
     Success(T),
@@ -31,7 +32,7 @@ pub struct GameManager{
     player_action: ManagerAction,
     enemy_action: ManagerAction,
     selected_lane: usize,
-    lane_painter: LanePainter
+    lane_painter: LanePainter,
 }
 
 pub struct GameManagerState{
@@ -58,7 +59,7 @@ impl GameManager {
             shop: Shop::new().await, 
             player: PlayerStats::new(400,30,200), 
             enemy : EnemyStats::new().await,
-            lane_manager: LaneManager::new(4), 
+            lane_manager: LaneManager::new(4).await, 
             text_painter: TextPainter::new(),
             player_action: ManagerAction::Wait,
             enemy_action: ManagerAction::Wait,
@@ -78,8 +79,9 @@ impl GameManager {
 
         self.act();
 
-        self.lane_painter.draw_lane_bounds();
+        //self.lane_painter.draw_lane_bounds();
         self.text_painter.paint_text(&self.player.text());
+
     }
 
     pub fn update_selected_lane(&mut self){

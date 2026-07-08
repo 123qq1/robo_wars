@@ -26,11 +26,11 @@ impl V_Unit {
     pub fn move_unit(&mut self){
         match self.faction {
             Faction::Enemy =>{
-                if (self.x - self.range()) < LaneManager::x_by_faction(&Faction::Player) {return}
+                if (self.x) < LaneManager::x_by_faction(&Faction::Player) {return}
                 self.x -= self.stats.speed();
             }
             Faction::Player => {
-                if (self.x + self.range()) > LaneManager::x_by_faction(&Faction::Enemy) {return}
+                if (self.x) > LaneManager::x_by_faction(&Faction::Enemy) {return}
                 self.x += self.stats.speed();
             }
         }
