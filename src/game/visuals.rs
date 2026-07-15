@@ -26,11 +26,17 @@ impl V_Unit {
     pub fn move_unit(&mut self){
         match self.faction {
             Faction::Enemy =>{
-                if (self.x) < LaneManager::x_by_faction(&Faction::Player) {return}
+                if (self.x) < LaneManager::x_by_faction(&Faction::Player) {
+                    self.update_action(UnitAction::Sieging);
+                    return
+                }
                 self.x -= self.stats.speed();
             }
             Faction::Player => {
-                if (self.x) > LaneManager::x_by_faction(&Faction::Enemy) {return}
+                if (self.x) > LaneManager::x_by_faction(&Faction::Enemy) {
+                    self.update_action(UnitAction::Sieging);
+                    return
+                }
                 self.x += self.stats.speed();
             }
         }
@@ -65,6 +71,14 @@ impl V_Unit {
 
     pub fn is_running(&self) -> bool{
         self.cur_action == UnitAction::Running
+    }
+
+    pub fn is_sieging(&self) -> bool{
+        self.cur_action == UnitAction::Sieging
+    }
+
+    pub fn cur_health(&self) -> f32{
+        self.stats.health() - self.dmg_taken
     }
 
     pub fn take_damage(&mut self, dmg : f32) -> bool{

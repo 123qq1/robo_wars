@@ -19,7 +19,8 @@ pub enum Faction {
 pub enum UnitAction{
     Wait,
     Running,
-    Fighting
+    Fighting,
+    Sieging,
 }
 
 pub struct LaneManager{
@@ -44,13 +45,17 @@ impl LaneManager{
 
         LaneManager { 
             lanes: v,
-            wall_manager: WallManager::new().await,
+            wall_manager: WallManager::new(5000.0,5000.0).await,
         }
     }
 
     pub fn step(&mut self){
         self.lanes.iter_mut().for_each(|l|{l.step()});
-        self.wall_manager.step();
+        let s_u = self.lanes.iter_mut().fold(Vec::new(), |mut v,l|{
+            v.append(&mut l.do_sieges());
+            v
+        });
+        self.wall_manager.step(s_u);
     }
 
     pub fn add_building(&mut self,faction:Faction, lane: usize, b: Building){
@@ -99,7 +104,9 @@ impl Lane{
         self.buildings.iter().filter(|b|{*b.faction() == *faction}).count()
     }
 
-    fn step(&mut self){
+    fn step(&mut self){        
+        self.fight();
+
         self.step_runners();
 
         let mut us = Vec::new();
@@ -113,10 +120,27 @@ impl Lane{
         self.update_forerunners();
         self.update_fighters();
 
-        self.fight();
-
         self.buildings.iter().for_each(|b|{b.draw();});
         self.units.iter().for_each(|(_,u)|{u.draw(WHITE);});
+    }
+
+    pub fn do_sieges(&mut self) -> Vec<V_Unit>{
+        let mut v_i = Vec::new();
+        let mut v_u = Vec::new();
+
+        for (i,v_u) in self.units.iter().rev() {
+            if v_u.is_sieging() {
+                v_i.push(*i);
+            }
+        }
+
+        for i in v_i {
+            v_u.push(self.units.remove(i).1);
+        }
+
+        self.update_indexes();
+
+        v_u
     }
 
     fn step_runners(&mut self){
