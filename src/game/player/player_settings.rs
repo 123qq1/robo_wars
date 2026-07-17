@@ -19,7 +19,7 @@ impl PlayerSettings{
     }
 }
 
-pub fn get_player_settings(level : usize) -> PlayerSettings{
+pub fn get_player_settings(_level : usize) -> PlayerSettings{
     let str =     r#"
         {
             "income_payout": 5,

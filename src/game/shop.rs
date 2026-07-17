@@ -1,7 +1,6 @@
 mod shop_settings;
 
 use crate::game::ManagerAction;
-use crate::game::enemy::EnemyStats;
 
 use super::Status::{self, Faliure, Success};
 
@@ -38,7 +37,7 @@ impl Shop {
 
         if !b.available {return Faliure("Item not available".to_string());}
 
-        if let Some(m) = p_stats.pay(b.price){
+        if let Some(_) = p_stats.pay(b.price){
             return Success(b.product.clone());
         }
 
@@ -51,23 +50,12 @@ impl Shop {
 
         match action {
             ShopAction::Buy(i) => {
-                return ManagerAction::P_Build(i)
+                return ManagerAction::PBuild(i)
                 
             }
             ShopAction::Wait => {}
         }
         ManagerAction::Wait
-    }
-
-    pub fn get_index(&self, building : Building)-> Option<usize>{
-        let o_o = self.options.iter().enumerate().find(|(i,o)|{
-            o.product.name() == building.name()
-        });
-
-        match o_o {
-            Some(o) => {return Some(o.0)}
-            None => {return None;}
-        }
     }
 }
 
@@ -101,17 +89,6 @@ impl ShopState {
 
         ShopState { 
             options: v_o,
-        }
-    }
-
-    pub fn get_buyable(&self, budget: i32)->Option<Building>{
-        let  o_s = self.options.iter().find(|o|{
-            o.available && (o.price < budget)
-        });
-
-        match o_s {
-            None => {return None;}
-            Some(o) => {return Some(o.product.clone())}
         }
     }
 }

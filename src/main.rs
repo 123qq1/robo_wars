@@ -1,6 +1,6 @@
 mod game;
 mod menu;
-use macroquad::{miniquad::window::set_window_size, prelude::*};
+use macroquad::prelude::*;
 
 use game::GameManager;
 use menu::MenuManager;

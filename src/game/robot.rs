@@ -46,19 +46,7 @@ impl RawUnit {
 }
 
 impl Unit{
-    pub fn new(name: String,health:f32,speed:f32,dmg:f32,range:f32,finish:f32, rate: f32, texture: Texture2D) -> Unit{
-        Unit{
-            name,
-            health,
-            speed,
-            dmg,
-            range,
-            finish,
-            progress: 0.0,
-            rate,
-            texture,
-        }
-    }
+
     pub fn speed(&self)->f32{
         self.speed
     }

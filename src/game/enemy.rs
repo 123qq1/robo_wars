@@ -19,13 +19,13 @@ impl EnemyStats {
             buildings: enemy_buildings::get_buildings().await,
         }
     }
-    pub fn step(&mut self, man: &GameManagerState) -> ManagerAction{
+    pub fn step(&mut self, _man: &GameManagerState) -> ManagerAction{
 
         match self.ai.step() {
             EnemyAIAction::Build{building_index:i,lane_index:l} =>{
                 let b = self.buildings.get(i).unwrap();
 
-                return ManagerAction::E_Build{building: b.clone(),lane_index: l};
+                return ManagerAction::EBuild{building: b.clone(),lane_index: l};
             },
             EnemyAIAction::Wait => {
                 return ManagerAction::Wait

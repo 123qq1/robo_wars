@@ -38,16 +38,6 @@ impl RawBuilding {
 }
 
 impl Building{
-    pub fn new(name: String, speed:f32,product:Unit,finish:f32,texture: Texture2D) -> Building{
-        Building { 
-            name,
-            speed, 
-            product,
-            progress: 0.0,
-            finish, 
-            texture,
-        }
-    }
 
     pub fn produce(&mut self) -> Option<Unit>{
 

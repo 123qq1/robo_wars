@@ -27,18 +27,10 @@ impl PlayerStats {
         }
     }
 
-    pub fn money(&self)-> i32{
-        self.money
-    }
-
     pub fn pay(&mut self,cost: i32) -> Option<i32>{
         if self.money < cost {return None} 
         self.money -= cost;
         Some(self.money)
-    }
-
-    pub fn gain(&mut self, gain: i32){
-        self.money += gain;
     }
 
     pub fn step(&mut self){

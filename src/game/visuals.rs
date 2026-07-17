@@ -5,23 +5,23 @@ use super::combat::UnitAction;
 use super::robot::Unit;
 use super::factory::Building;
 use super::combat::Faction;
-use macroquad::{prelude::*, texture};
+use macroquad::prelude::*;
 
 #[derive(Debug)]
-pub struct V_Unit{
+pub struct VUnit{
     faction: Faction,
     x: f32,
     y: f32,
-    lane: usize,
+    _lane: usize,
     stats: Unit,
     dmg_taken: f32,
     cur_action: UnitAction,
 }
 
-impl V_Unit {
-    pub fn new(faction: Faction,x:f32,y:f32,lane: usize,stats: Unit) -> V_Unit{
+impl VUnit {
+    pub fn new(faction: Faction,x:f32,y:f32,_lane: usize,stats: Unit) -> VUnit{
         let d_y = rand::gen_range(-2.0, 2.0);
-        V_Unit {faction, x, y: y + d_y, lane, stats ,dmg_taken: 0.0, cur_action: UnitAction::Wait}
+        VUnit {faction, x, y: y + d_y, _lane, stats ,dmg_taken: 0.0, cur_action: UnitAction::Wait}
     }
     pub fn move_unit(&mut self){
         match self.faction {
@@ -61,10 +61,6 @@ impl V_Unit {
         self.cur_action = action;
     }
 
-    pub fn cur_action(&self) -> &UnitAction{
-        &self.cur_action
-    }
-
     pub fn is_fighting(&self) -> bool{
         self.cur_action == UnitAction::Fighting
     }
@@ -101,7 +97,7 @@ impl V_Unit {
     }
 }
 
-pub struct V_Building{
+pub struct VBuilding{
     faction:Faction,
     x: f32,
     y: f32,
@@ -110,19 +106,16 @@ pub struct V_Building{
     x_offset: f32,
 }
 
-impl V_Building{
-    pub fn new(faction:Faction,x:f32,y:f32,lane:usize,stats:Building, x_offset: f32) -> V_Building{
-        V_Building {faction, x, y, lane, stats , x_offset}
+impl VBuilding{
+    pub fn new(faction:Faction,x:f32,y:f32,lane:usize,stats:Building, x_offset: f32) -> VBuilding{
+        VBuilding {faction, x, y, lane, stats , x_offset}
     }
-    pub fn produce(&mut self) -> Option<V_Unit>{
+    pub fn produce(&mut self) -> Option<VUnit>{
         let p = self.stats.produce();
 
         if p.is_none() {return None}
 
-        Some(V_Unit::new(self.faction.clone(),self.x, self.y, self.lane, p.unwrap()))
-    }
-    pub fn pos(&self) -> (f32,f32){
-        (self.x,self.y)
+        Some(VUnit::new(self.faction.clone(),self.x, self.y, self.lane, p.unwrap()))
     }
 
     pub fn faction(&self) -> &Faction{

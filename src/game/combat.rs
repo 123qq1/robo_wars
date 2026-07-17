@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
-use macroquad::color::{BLUE, GREEN, RED, WHITE, YELLOW};
+use macroquad::color::WHITE;
 
 use crate::game::ManagerAction;
 
-use super::robot::Unit;
 use super::factory::Building;
-use super::visuals::{V_Building,V_Unit};
+use super::visuals::{VBuilding,VUnit};
 use super::wall::WallManager;
 
 const X_SIZE : f32 = 32.0;
@@ -32,8 +31,8 @@ pub struct LaneManager{
 
 struct Lane{
     y : f32,
-    buildings: Vec<V_Building>,
-    units: Vec<(usize,V_Unit)>,
+    buildings: Vec<VBuilding>,
+    units: Vec<(usize,VUnit)>,
     forerunners: HashMap<Faction,usize>
 }
 
@@ -83,19 +82,13 @@ impl LaneManager{
         let x = LaneManager::x_by_faction(&faction);
         let x_offset = LaneManager::calc_x_offset(building_count as f32, &faction);
 
-        let v_b = V_Building::new(faction,x, y, lane, b,x_offset);
+        let v_b = VBuilding::new(faction,x, y, lane, b,x_offset);
         lane_man.add_building(v_b);
     }
 
     fn calc_x_offset(building_count: f32, faction: &Faction) -> f32{
         if *faction == Faction::Player { -X_SIZE * (building_count as f32 + 1.0)}
         else {X_SIZE * (building_count as f32 + 1.0)}
-    }
-
-    fn add_unit(&mut self,faction:Faction, lane: usize, u: Unit){
-        let y = self.lanes[lane].y;
-        let v_u = V_Unit::new(faction,50.0, y, lane, u);
-        self.lanes[lane].add_unit(v_u);
     }
 
     pub fn x_by_faction(faction: &Faction)-> f32{
@@ -141,7 +134,7 @@ impl Lane{
         self.units.iter().for_each(|(_,u)|{u.draw(WHITE);});
     }
 
-    pub fn do_sieges(&mut self) -> Vec<V_Unit>{
+    pub fn do_sieges(&mut self) -> Vec<VUnit>{
         let mut v_i = Vec::new();
         let mut v_u = Vec::new();
 
@@ -221,38 +214,8 @@ impl Lane{
         Some((*t_i,dmg))
     }
 
-    fn is_forerunner(&self, i_1 : &usize, u : &V_Unit) -> bool{
-        if let Some(i_2) = self.forerunners.get(u.faction()){
-            return i_1 == i_2;
-        }
-
-        false
-    }
-
-    fn _debug_draw_units_different_color(&self ,i : &usize,u : &V_Unit){
-        if self.is_forerunner(i, u){
-            u.draw(GREEN);
-        }
-        else if u.is_fighting(){
-            u.draw(RED);
-        }
-        else if u.is_running(){
-            u.draw(YELLOW);
-        }
-        else{
-            u.draw(BLUE);
-        }
-    }
-
-    fn add_building(&mut self, b: V_Building){
+    fn add_building(&mut self, b: VBuilding){
         self.buildings.push(b);
-    }
-
-    fn add_unit(&mut self, mut u: V_Unit){
-        let i = self.units.len();
-        let f = u.faction();
-        u.update_action(UnitAction::Running);
-        self.units.push((i,u));
     }
 
     fn update_forerunners(&mut self){
@@ -268,7 +231,7 @@ impl Lane{
     }
 
     fn find_forerunner(&self, faction: Faction) -> Option<usize>{
-        let candidates : Vec<&(usize, V_Unit)> = self.units.iter().filter(|(i,u)|{*u.faction() == faction}).collect();
+        let candidates : Vec<&(usize, VUnit)> = self.units.iter().filter(|(_,u)|{*u.faction() == faction}).collect();
 
         if candidates.len() == 0 {return None;}
 
@@ -282,7 +245,7 @@ impl Lane{
         Some(winner.0)
     }
 
-    fn forerunner_score(faction : &Faction, u: &V_Unit) -> f32{
+    fn forerunner_score(faction : &Faction, u: &VUnit) -> f32{
         match faction {
             Faction::Player => {u.pos().0 - LaneManager::x_by_faction(&faction) },
             Faction::Enemy => {LaneManager::x_by_faction(&faction) - u.pos().0},
@@ -336,11 +299,11 @@ impl Lane{
 
     }
 
-    fn add_units(&mut self,mut us: Vec<V_Unit>){
+    fn add_units(&mut self,mut us: Vec<VUnit>){
         let i_1 = self.units.len();
         let i_2 = i_1 + us.len();
         let is : Vec<usize> = (i_1..i_2).collect();
-        let mut nu: Vec<(usize, V_Unit)> = Vec::new();
+        let mut nu: Vec<(usize, VUnit)> = Vec::new();
 
         for u in &mut us {
             u.update_action(UnitAction::Running);

@@ -2,7 +2,7 @@ mod wall_painter;
 
 use wall_painter::WallPainter;
 
-use crate::game::{combat::Faction, visuals::V_Unit};
+use crate::game::{combat::Faction, visuals::VUnit};
 
 pub struct WallManager{
     painter: WallPainter,
@@ -49,7 +49,7 @@ impl WallManager{
         }
     }
 
-    pub fn step(&mut self, sieging_units: Vec<V_Unit>)-> WallStates{
+    pub fn step(&mut self, sieging_units: Vec<VUnit>)-> WallStates{
         self.painter.paint(&self.wall_states.clone());
         
         for u in sieging_units {
@@ -59,7 +59,7 @@ impl WallManager{
         self.wall_states.clone()
     }
 
-    pub fn damage_wall(&mut self,unit: V_Unit){
+    pub fn damage_wall(&mut self,unit: VUnit){
         let faction = unit.faction();
 
         let dmg = unit.cur_health();
