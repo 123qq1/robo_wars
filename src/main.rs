@@ -15,7 +15,7 @@ async fn main() {
 
     //set_fullscreen(true);
 
-    let mut game_manager = GameManager::new().await;
+    let mut game_manager = GameManager::new(0).await;
     let mut menu_manager = MenuManager::new();
     
     let mut cur_game_state= GameState::MainMenu;
@@ -26,20 +26,35 @@ async fn main() {
         clear_background(GRAY);
         window_s = (screen_width(),screen_height());
 
+        let mut action = GameAction::Wait;
+
         match cur_game_state {
             GameState::MainMenu => {
-                act(menu_manager.step_main(), &mut cur_game_state);
+                action = menu_manager.step_main();
             }
             GameState::LevelMenu => {
-                act(menu_manager.step_level(), &mut cur_game_state);
+                action = menu_manager.step_level();
             }
-            GameState::Level(l) => {
-                game_manager.step();
+            GameState::Level(_) => {
+                action = game_manager.step();
             }
             GameState::Quit => {
                 break;
             }
         }
+
+        match &action {
+            GameAction::ChangeState(g) =>
+            match g {
+                GameState::Level(l) => {
+                    game_manager = GameManager::new(*l).await;
+                },
+                _ => (),
+            }
+            _ => (),
+        }
+
+        act(action,&mut cur_game_state);
 
         next_frame().await
     }

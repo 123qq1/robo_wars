@@ -1,3 +1,5 @@
+use macroquad::time::get_frame_time;
+
 use super::{GameManagerState, ManagerAction, factory::Building};
 
 mod ai_settings;
@@ -11,9 +13,9 @@ pub struct EnemyStats{
 
 
 impl EnemyStats {
-    pub async fn new() -> EnemyStats{
+    pub async fn new(level : usize) -> EnemyStats{
         EnemyStats { 
-            ai:EnemyAI::new(),
+            ai:EnemyAI::new(level),
             buildings: enemy_buildings::get_buildings().await,
         }
     }
@@ -47,20 +49,20 @@ pub struct EnemyAI{
     state: EnemyAIState,
     steps: Vec<ai_settings::RawAIActions>,
     cur_step: usize,
-    progress: i32,
-    finish : i32,
+    progress: f32,
+    finish : f32,
 }
 
 impl EnemyAI {
-    pub fn new()->EnemyAI{
+    pub fn new(level : usize)->EnemyAI{
 
-        let steps = serde_json::from_str(&ai_settings::get_json()).unwrap();
+        let steps = serde_json::from_str(&ai_settings::get_json(level)).unwrap();
         println!("{:?}",&steps);
         EnemyAI{
             state: EnemyAIState::Act,
             cur_step: 0,
-            progress: 0,
-            finish: 0,
+            progress: 0.0,
+            finish: 0.0,
             steps
         }   
     }
@@ -90,7 +92,7 @@ impl EnemyAI {
                 return EnemyAIAction::Build { building_index: *s, lane_index: *l }
             }
             ai_settings::RawAIActions::Wait(i) => {
-                self.progress = 0;
+                self.progress = 0.0;
                 self.finish = *i;
                 self.state = EnemyAIState::Wait;
 
@@ -104,7 +106,7 @@ impl EnemyAI {
     }
 
     pub fn state_step(&mut self){
-        self.progress += 1;
+        self.progress += get_frame_time();
 
         if self.progress > self.finish {
             self.state = EnemyAIState::Act;

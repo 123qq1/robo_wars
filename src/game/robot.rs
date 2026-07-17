@@ -1,4 +1,4 @@
-use macroquad::texture::{Texture2D, load_texture};
+use macroquad::{texture::{Texture2D, load_texture}, time::get_frame_time};
 use serde::Deserialize;
 
 #[derive(Debug)]
@@ -30,6 +30,7 @@ pub struct RawUnit{
 impl RawUnit {
     pub async fn into_u(self) -> Unit {
         let texture = load_texture(&self.texture).await.unwrap();
+        texture.set_filter(macroquad::texture::FilterMode::Nearest);
         Unit{
             name : self.name,
             health : self.health,
@@ -68,7 +69,7 @@ impl Unit{
 
     pub fn dmg(&mut self) -> Option<f32>{
 
-        self.progress += self.rate;
+        self.progress += self.rate * get_frame_time();
 
         if self.progress < self.finish{return None}
         

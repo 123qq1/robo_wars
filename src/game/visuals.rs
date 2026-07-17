@@ -1,4 +1,4 @@
-use crate::game::combat::LaneManager;
+use crate::game::{GameManager, combat::LaneManager};
 
 use super::combat::UnitAction;
 
@@ -30,14 +30,14 @@ impl V_Unit {
                     self.update_action(UnitAction::Sieging);
                     return
                 }
-                self.x -= self.stats.speed();
+                self.x -= self.stats.speed() * get_frame_time();
             }
             Faction::Player => {
                 if (self.x) > LaneManager::x_by_faction(&Faction::Enemy) {
                     self.update_action(UnitAction::Sieging);
                     return
                 }
-                self.x += self.stats.speed();
+                self.x += self.stats.speed() * get_frame_time();
             }
         }
     }
@@ -88,9 +88,16 @@ impl V_Unit {
     }
     
     pub fn draw(&self, color: Color){
-        let x = self.x - 8.0;
-        let y = self.y - 16.0;
-        draw_texture(self.stats.texture(), x, y, color);
+        
+        let x = self.x.round();
+        let y = self.y.round();
+        
+        let x = x - 16.0;
+        let y = y - 32.0;
+        let params = GameManager::default_texture_params(32.0, 32.0);
+        //draw_texture(self.stats.texture(), x, y, color);
+        draw_texture_ex(self.stats.texture(), x, y, color,params);
+        GameManager::draw_life_bar(self.x, self.y, 10.0, self.stats.health(), self.dmg_taken, 2.0, true);
     }
 }
 
@@ -123,8 +130,13 @@ impl V_Building{
     }
 
     pub fn draw(&self){
-        let x = self.x - 8.0 + self.x_offset;
-        let y = self.y - 16.0;
-        draw_texture(self.stats.texture(), x, y, WHITE);
+        let x = self.x.round();
+        let y = self.y.round();
+
+        let x = x - 16.0 + self.x_offset;
+        let y = y - 32.0;
+        let params = GameManager::default_texture_params(32.0, 32.0);
+        //draw_texture(self.stats.texture(), x, y, WHITE);
+        draw_texture_ex(self.stats.texture(), x, y, WHITE,params);
     }
 }

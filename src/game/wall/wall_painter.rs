@@ -1,6 +1,6 @@
 use macroquad::{color::WHITE, texture::{Texture2D, draw_texture, load_texture}};
 
-use crate::game::{combat::{Faction,LaneManager}, wall::WallStates};
+use crate::game::{GameManager, combat::{Faction,LaneManager}, wall::WallStates};
 
 pub struct WallPainter{
     alive_texture: Texture2D,
@@ -26,12 +26,18 @@ impl WallPainter {
         let x_2 = LaneManager::x_by_faction(&Faction::Enemy) - 16.0;
 
         match wall_states.player {
-            super::WallState::Alive(_) => draw_texture(&self.alive_texture, x_1, y, WHITE),
+            super::WallState::Alive{max:m,dmg:d} => {
+                draw_texture(&self.alive_texture, x_1, y, WHITE);
+                GameManager::draw_life_bar(x_1+16.0,y+202.0,100.0,m,d,10.0,false);
+            },
             super::WallState::Dead => draw_texture(&self.dead_texture, x_1, y, WHITE),
         }
         
         match wall_states.enemy {
-            super::WallState::Alive(_) => draw_texture(&self.alive_texture, x_2, y, WHITE),
+            super::WallState::Alive{max:m,dmg:d} => {
+                draw_texture(&self.alive_texture, x_2, y, WHITE);
+                GameManager::draw_life_bar(x_2+16.0,y+202.0,100.0,m,d,10.0,false);
+            },
             super::WallState::Dead => draw_texture(&self.dead_texture, x_2, y, WHITE),
         }
         

@@ -24,7 +24,7 @@ impl LevelMenuPainter {
                 *action = MenuAction::MainMenuSelected;
             }
 
-            for i in 0..1 {
+            for i in 0..2 {
                 let y = 50.0 + i as f32 * 30.0;
                 if ui.button(vec2(BUTTON_X,y), format!("Level {}",i + 1)){
                     *action = MenuAction::LevelSelected(i);

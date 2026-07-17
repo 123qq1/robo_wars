@@ -1,23 +1,28 @@
-use macroquad::color::BLACK;
+use macroquad::{color::BLACK, time::get_frame_time};
 
 use crate::game::ui::TextPaintOptions;
+mod player_settings;
 
 
 pub struct PlayerStats{
-    income_step: i32,
-    income_payout: i32,
+    income_step: f32,
+    income_payout: f32,
     income: i32,
     money: i32,
     text_paint_options: TextPaintOptions
 }
 
+
 impl PlayerStats {
-    pub fn new(money: i32,income:i32, income_payout: i32)->PlayerStats{
+    pub fn new(level : usize)->PlayerStats{
+
+        let p_s = player_settings::get_player_settings(level);
+
         PlayerStats { 
-            income_payout,
-            income_step: 0,
-            income,
-            money,
+            income_payout : p_s.income_payout(),
+            income_step: 0.0,
+            income : p_s.income(),
+            money : p_s.money(),
             text_paint_options: TextPaintOptions { text: "".to_string(), x: 30.0, y: 250.0, font_size: 15.0, color: BLACK }
         }
     }
@@ -37,10 +42,10 @@ impl PlayerStats {
     }
 
     pub fn step(&mut self){
-        self.income_step += 1;
+        self.income_step += get_frame_time();
 
         if self.income_step > self.income_payout {
-            self.income_step = 0;
+            self.income_step = 0.0;
             self.money += self.income;
         }
         self.text_paint_options.text = format!("Player: {}$ : ^{}$",self.money,self.income);

@@ -18,7 +18,7 @@ pub struct WallManager{
 
 #[derive(Clone)]
 pub enum WallState{
-    Alive(f32),
+    Alive{max:f32,dmg:f32},
     Dead,
 }
 
@@ -26,6 +26,15 @@ pub enum WallState{
 pub struct WallStates{
     player: WallState,
     enemy: WallState,
+}
+
+impl WallStates{
+    pub fn player(&self) -> WallState{
+        self.player.clone()
+    }
+    pub fn enemy(&self) -> WallState{
+        self.enemy.clone()
+    }
 }
 
 impl WallManager{
@@ -36,7 +45,7 @@ impl WallManager{
             player_cur_wall_damage: 0.0,
             enemy_wall_health,
             enemy_cur_wall_damage: 0.0,
-            wall_states: WallStates { player: WallState::Alive(player_wall_health), enemy: WallState::Alive(player_wall_health) }
+            wall_states: WallStates { player: WallState::Alive{max:player_wall_health,dmg:0.0}, enemy: WallState::Alive{max:enemy_wall_health,dmg:0.0} }
         }
     }
 
@@ -58,10 +67,12 @@ impl WallManager{
         match faction {
             Faction::Enemy => {
                 self.player_cur_wall_damage += dmg;
+                self.wall_states.player = WallState::Alive { max: self.player_wall_health, dmg:self.player_cur_wall_damage };
                 if self.player_cur_wall_damage > self.player_wall_health {self.wall_states.player = WallState::Dead;}
             }
             Faction::Player => {
                 self.enemy_cur_wall_damage += dmg;
+                self.wall_states.enemy = WallState::Alive { max: self.enemy_wall_health, dmg:self.enemy_cur_wall_damage };
                 if self.enemy_cur_wall_damage > self.enemy_wall_health {self.wall_states.enemy = WallState::Dead;}
             }
         }

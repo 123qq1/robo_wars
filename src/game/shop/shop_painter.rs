@@ -15,7 +15,6 @@ impl Painter {
             vec2(500.0, 70.0), 
             |ui|{
                 ui.label(vec2(10.0, 10.0), "SHOP");
-
                 for (i,o) in state.options.iter().enumerate() {
                     let y = 30.0;
                     let x = 10.0 + (i * 100) as f32;
@@ -29,7 +28,7 @@ impl Painter {
                         ui.label(vec2(x,y), &label);
                     }
                 }
-
+                
             });
     }
 }

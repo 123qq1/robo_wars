@@ -1,5 +1,5 @@
 use super::robot::{Unit,RawUnit};
-use macroquad::texture::{Texture2D, load_texture};
+use macroquad::{texture::{Texture2D, load_texture}, time::get_frame_time};
 use serde::Deserialize;
 
 #[derive(Debug)]
@@ -25,7 +25,7 @@ pub struct RawBuilding{
 impl RawBuilding {
     pub async fn into_b(self) -> Building {
         let texture = load_texture(&self.texture).await.unwrap();
-
+        texture.set_filter(macroquad::texture::FilterMode::Nearest);
         Building { 
             name: self.name, 
             progress: self.progress, 
@@ -51,7 +51,7 @@ impl Building{
 
     pub fn produce(&mut self) -> Option<Unit>{
 
-        self.progress += self.speed;
+        self.progress += self.speed * get_frame_time();
 
         if self.progress < self.finish {
             return None

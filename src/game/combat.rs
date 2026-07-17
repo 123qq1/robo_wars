@@ -2,12 +2,14 @@ use std::collections::HashMap;
 
 use macroquad::color::{BLUE, GREEN, RED, WHITE, YELLOW};
 
+use crate::game::ManagerAction;
+
 use super::robot::Unit;
 use super::factory::Building;
 use super::visuals::{V_Building,V_Unit};
 use super::wall::WallManager;
 
-const X_SIZE : f32 = 16.0;
+const X_SIZE : f32 = 32.0;
 
 #[derive(Debug,Clone,Eq, Hash, PartialEq)]
 pub enum Faction {
@@ -49,13 +51,27 @@ impl LaneManager{
         }
     }
 
-    pub fn step(&mut self){
+    pub fn step(&mut self) -> ManagerAction{
         self.lanes.iter_mut().for_each(|l|{l.step()});
         let s_u = self.lanes.iter_mut().fold(Vec::new(), |mut v,l|{
             v.append(&mut l.do_sieges());
             v
         });
-        self.wall_manager.step(s_u);
+        let walls = self.wall_manager.step(s_u);
+
+        let p_s = walls.player();
+        let e_s = walls.enemy();
+
+        match e_s {
+            super::wall::WallState::Alive {..} => (),
+            super::wall::WallState::Dead => return ManagerAction::Win,
+        }
+        match p_s {
+            super::wall::WallState::Alive {..} => (),
+            super::wall::WallState::Dead => return ManagerAction::Lose,
+        }
+
+        ManagerAction::Wait
     }
 
     pub fn add_building(&mut self,faction:Faction, lane: usize, b: Building){
@@ -105,6 +121,9 @@ impl Lane{
     }
 
     fn step(&mut self){        
+        self.update_forerunners();
+        self.update_fighters();
+        
         self.fight();
 
         self.step_runners();
@@ -117,8 +136,6 @@ impl Lane{
         });
         self.add_units(us);
 
-        self.update_forerunners();
-        self.update_fighters();
 
         self.buildings.iter().for_each(|b|{b.draw();});
         self.units.iter().for_each(|(_,u)|{u.draw(WHITE);});
@@ -280,7 +297,13 @@ impl Lane{
     fn update_faction_fighter(&mut self, us : Faction, them : Faction){
         
         let i = self.forerunners.get(&them);
-        if i == None {return}
+        if i == None {
+            let u_p = self.units.iter_mut().filter(|(_,u)|{*u.faction() == us});
+            u_p.for_each(|(_,u)|{
+                u.update_action(UnitAction::Running);
+            });
+            return
+        }
 
         /*
         for (_,_u) in &mut self.units {
@@ -291,8 +314,8 @@ impl Lane{
         let i = *i.unwrap();
 
         let x_2 = self.units[i].1.pos().0;
-
         let u_p = self.units.iter_mut().filter(|(_,u)|{*u.faction() == us});
+
 
         u_p.for_each(|(_,u)|{
             let x_1 = u.pos().0;

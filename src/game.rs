@@ -14,16 +14,20 @@ pub enum Status<T>{
     Faliure(String),
 }
 
+use macroquad::{prelude::*,color::{GREEN, RED}, math::Vec2, shapes::draw_rectangle, texture::DrawTextureParams, ui::{hash, root_ui}};
 use shop::Shop;
 use player::PlayerStats;
 use combat::LaneManager;
 use enemy::EnemyStats;
+use crate::GameAction;
+
 use {ui::TextPainter, ui::LanePainter};
 use shop::ShopState;
 
 use factory::Building;
 
 pub struct GameManager{
+    level: Option<usize>,
     shop: Shop,
     player: PlayerStats,
     enemy: EnemyStats,
@@ -33,6 +37,7 @@ pub struct GameManager{
     enemy_action: ManagerAction,
     selected_lane: usize,
     lane_painter: LanePainter,
+    game_action: ManagerAction,
 }
 
 pub struct GameManagerState{
@@ -51,37 +56,43 @@ pub enum ManagerAction {
     Wait,
     E_Build{building: Building, lane_index : usize},
     P_Build(usize),
+    Win,
+    Lose,
 }
 
 impl GameManager {
-    pub async fn new() -> GameManager{
+    pub async fn new(level:usize) -> GameManager{
         GameManager { 
+            level: None,
             shop: Shop::new().await, 
-            player: PlayerStats::new(400,30,200), 
-            enemy : EnemyStats::new().await,
+            player: PlayerStats::new(level), 
+            enemy : EnemyStats::new(level).await,
             lane_manager: LaneManager::new(4).await, 
             text_painter: TextPainter::new(),
             player_action: ManagerAction::Wait,
             enemy_action: ManagerAction::Wait,
+            game_action: ManagerAction::Wait,
             selected_lane: 0,
             lane_painter: LanePainter {  },
         }
     }
 
-    pub fn step(&mut self){
+    pub fn step(&mut self) -> GameAction{
+
         let m_s = GameManagerState::new(self);
 
-        self.lane_manager.step();
+        self.game_action = self.lane_manager.step();
         self.enemy_action = self.enemy.step(&m_s);
         self.player.step();
         self.player_action = self.shop.step();
         self.update_selected_lane();
 
-        self.act();
+        let g_a = self.act();
 
         //self.lane_painter.draw_lane_bounds();
         self.text_painter.paint_text(&self.player.text());
 
+        g_a
     }
 
     pub fn update_selected_lane(&mut self){
@@ -93,7 +104,7 @@ impl GameManager {
         }
     }
 
-    pub fn act(&mut self){
+    pub fn act(&mut self) -> GameAction{
         match &self.enemy_action {
             ManagerAction::E_Build{building:b,lane_index:l} => {
                 self.lane_manager.add_building(combat::Faction::Enemy, *l, b.clone());
@@ -116,6 +127,51 @@ impl GameManager {
             }
             _ => (),
         }
+
+        match &self.game_action {
+            ManagerAction::Win => return self.draw_end_window("Victory"),
+            ManagerAction::Lose => return self.draw_end_window("Defeat"),
+            _ => (),
+        }
+
+        GameAction::Wait
+    }
+
+    fn draw_end_window(&self,text: &str)-> GameAction{
+        let mut action = GameAction::Wait;
+
+        root_ui().window(
+            hash!(), 
+            vec2(300.0, 100.0), 
+            vec2(70.0, 70.0), 
+            |ui|{
+                ui.label(vec2(10.0, 10.0), text);
+                    if ui.button(vec2(10.0, 30.0), "Menu"){
+                        action = GameAction::ChangeState(crate::GameState::LevelMenu);
+                    }
+                });
+
+        action
+    }
+
+    pub fn default_texture_params(x : f32, y : f32) -> DrawTextureParams{
+        DrawTextureParams { 
+            dest_size: Some(Vec2{x,y}), 
+            ..Default::default()
+        }
+    }
+
+    pub fn draw_life_bar(x:f32,y:f32, w:f32,max_life : f32,cur_damage : f32, height:f32,hide:bool){
+        if cur_damage == 0.0 && hide {return;}
+        
+        let n_max = (w*max_life)/max_life;
+        let n_dmg = (w*cur_damage)/max_life;
+
+        let x = x - n_max/2.0;
+        let dx = n_max - n_dmg;
+        
+        draw_rectangle(x, y, n_max, height, GREEN);
+        draw_rectangle(x+dx, y, n_dmg, height, RED);
     }
 }
 
